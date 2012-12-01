@@ -1,0 +1,87 @@
+#-.) Figure out how to execute a sub script in python.
+#   a.) Pipe results of subscript back to main python scripts
+#   b.) Sub script will import python mpdules that are not in splunk/python.
+#   c.) Sub script will have to unset splunk's python stuff...
+#-.) Validate that you can pull data from sql lite.
+#-.) Determine field names automagically
+#-.) Determine how to pull table name from search command line
+#-.) Learn how to preconfigure the database connection at configuration time.
+#-.) Determine how to call on a particular configuration in the python code...
+#- Make fieldname extraction a method.
+#- Do postgres as well
+#- Add logging
+#- Add Exception handling
+
+4.) Search for a sqlutils like program that would do what this application does.
+- DBX Universal Connector , http://splunk-base.splunk.com/apps/50803/dbx-sql-database-extension
+- MySQL Connector , http://splunk-base.splunk.com/apps/36664/splunk-mysql-connector
+- JDBC Connector , http://splunk-base.splunk.com/apps/27105/jdbc-scripted-input
+
+5.) Pretty up the code:
+- Make row extraction a method
+- Determine if print is the best way to write to standard out.  If not change it. 
+- Add functions to the wrapper script.
+- Should we use json as the object represenation between the wrapper and the regular script?
+- Do we need all these damn for loops for searching Dict objects or is there an easier way?
+- We shold be writing to stdout in a streaming way... otherwise we will ahve memory consumption out the butt.
+
+
+6.) Learn how to do the same from oracle. //this one will be useful for work.
+- Do mysql as well
+- Determine how to do for oracle using local dbconnect (to hide authentication credentials)
+
+7.) Write up install docs.
+8.) Write up usage docs... including examples
+9.) Write up app features description
+10.) Write up app architecture
+
+9.) Create standard set of diagnostic tests.
+
+10.) Add help messages to standard splunk help interface.
+# - importutil
+# - importtable
+
+11.) Create default dbs.conf
+
+12.) Check code into public repository
+- Update code with creative commons
+
+13.) Upload to splunk app store.
+- Determine what is needed to do this.
+- Ask for a review of the code from Suresh.
+
+14.) Figure out how to stream data back to Splunk, rather than reading it all in and returning it.
+- This is going to be hard... punt for now.
+
+15.) Implment scp
+- This bascially requires yet another third party lib.
+- Could do ftp thought... there is a native library for that.
+
+
+Eventual execution will look like:
+
+| importtable configuration tablename | extract | table <field1>,<field2> | outputlookup
+
+| importutil protocol url | extract | table <field1>,<field2> | outputlookup
+
+| importutil protocol-operation configuration url|tablename | extract | table <field1>,<field2> | outputlookup
+
+| importutil sql-select mysqlite   eaglecities
+| importutil sql-select mypostgres nickscities
+| importutil http-get   myhttp     http://localhost/~nicholas.grabowski/nickscities.csv
+| importutil ftp-get    myftp      ftp://localhost/~nicholas.grabowski/nickscities.csv
+| importutil ssh-scp    myscp      @:/Users/nicholas.grabowski/nickscities.csv
+
+
+
+# TO execute for testing
+/Applications/splunk/bin/splunk cmd python /Applications/splunk/etc/apps/sqlselect/bin/importtable_wrapper.py mysqlite eaglecities
+
+Prerequisities for this app to work:
+1.) python 2.6.X or greater
+2.) python module sqllite3
+3.) python module psycopg2
+4.) python module mysql
+5.) Oracle driver?
+
+

@@ -1,0 +1,13 @@
+http://dev.splunk.com/view/splunk-python-sdk/SP-CAAAEBB
+
+#figuring out how to call a sqlite db in splunk.
+http://zetcode.com/db/sqlitepythontutorial/
+
+#figuring out python execution in splunk
+http://splunk-base.splunk.com/answers/8/can-i-add-python-modules-to-the-splunk-environment
+
+#python subprocess tutorial
+http://www.doughellmann.com/PyMOTW/subprocess/
+
+#turning on logging:
+http://splunk-base.splunk.com/answers/3935/debugging-custom-splunk-search-commands
