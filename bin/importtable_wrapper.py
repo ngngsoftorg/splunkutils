@@ -12,6 +12,7 @@ import splunk.Intersplunk
 import StringIO
 import splunk.bundle as bundle
 import splunk.clilib.cli_common 
+import configuration
 
 
 # start function setup_logging()
@@ -33,46 +34,13 @@ def setup_logging():
     return logger
 # end function
 
-# start function
-#
-def get_type_connectstr(configuration):
-    config = splunk.clilib.cli_common.getMergedConf('dbs')
-    type=None
-    connectstr=None
-    
-    logger.info("Retrieve configuration")
-    for configkey in config.keys():
-        #Get the db configuration specified in the search command
-        if(str(configkey) == configuration):
-            #First, determine which db type (e.g. postgres, mysql, sqlite) the configuration specifies. 
-            db = config[configkey]
-            for dbkey in db.keys():
-                if(str(dbkey) == "type"):
-                    type = db[dbkey]
-                    break
-            
-            #Get the connectstr for sqlite or postgres type
-            if(type == "sqlite" or type == "postgres"):
-                for dbkey in db.keys():
-                    if(str(dbkey) == "connectstr"):
-                        connectstr = db[dbkey]
-                        break        
-            #Get the connectstr oracle type    
-            elif(type == "mysql"):
-                for dbkey in db.keys():
-                    if(str(dbkey) == "connectstr"):
-                        connectstr = db[dbkey]
-                        break
-            break
-    
-    return (type,connectstr)
-# end function
     
 # function - usage
 #   display how to use this python script
 def usage():
-    print "\nUsage: importtable_wrapper.py <configuration> <tablename>\n"
+    print "\nUsage: importtable_wrapper.py <conf> <url|tablename>\n"
 # end function
+
     
 logger = setup_logging()
 
@@ -81,17 +49,18 @@ if(sys.argv.__len__() < 3):
     usage()
     sys.exit(2)
 
-configuration = sys.argv[1]
+conf = sys.argv[1]
+configdict = splunk.clilib.cli_common.getMergedConf('dbs')
     
 
 #Get configuration 
-(type, connectstr) = get_type_connectstr(configuration)
+(type, connectstr) = configuration.get_type_connectstr(configdict, conf)
 if(type == None):
-    logger.error("No type for configuration: \"" +  configuration + "\"")
-    raise Exception("No type for configuration: \"" +  configuration + "\"")
+    logger.error("No type for configuration: \"" +  conf + "\"")
+    raise Exception("No type for configuration: \"" +  conf + "\"")
 if(connectstr == None):
-    logger.error("No connectstr for configuration: \"" +  configuration + "\"")
-    raise Exception("No connectstr for configuration: \"" +  configuration + "\"")
+    logger.error("No connectstr for configuration: \"" +  conf + "\"")
+    raise Exception("No connectstr for configuration: \"" +  conf + "\"")
     
 #invoke the subprocess
 my_prog = os.path.join(sys.path[0],'importtable.py')
@@ -115,7 +84,7 @@ results = []
 for entry in jsonobj:
     results.append(entry)
 
-print results
+#print results
 
-logger.info("Calling splunk.Intersplunk.outputResults")
-#splunk.Intersplunk.outputResults(results)
+#logger.info("Calling splunk.Intersplunk.outputResults")
+splunk.Intersplunk.outputResults(results)

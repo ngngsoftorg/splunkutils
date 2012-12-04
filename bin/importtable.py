@@ -7,19 +7,7 @@ import sys, os
 import sqlite3 as lite
 import logging, logging.config, logging.handlers
 import psycopg2
-
-# start function setup_logging()
-#
-def setup_logging():
-
-    logging.basicConfig(
-        filename='importtable.log',level=logging.DEBUG,
-        format='%(asctime)s %(levelname)-s\t%(module)s:%(lineno)d - %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p')
-    logger = logging.getLogger('importtable')
-    #splunk.setupSplunkLogger(logger, LOGGING_DEFAULT_CONFIG_FILE, LOGGING_LOCAL_CONFIG_FILE, LOGGING_STANZA_NAME)
-    return logger
-# end function
+import configuration
 
 
 # function - extract_fieldnames
@@ -201,7 +189,7 @@ def usage():
 # end function
 
 
-logger = setup_logging()
+logger = configuration.setup_logging()
 logger.info("Init importtable.py")
 
 if(sys.argv.__len__() < 4):
