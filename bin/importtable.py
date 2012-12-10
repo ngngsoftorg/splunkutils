@@ -5,6 +5,7 @@
 
 import sys, os
 import sqlite3 as lite
+import pypyodbc as pyodbc
 import logging, logging.config, logging.handlers
 import psycopg2
 import configuration
@@ -27,6 +28,35 @@ def extract_fieldnames(type, connectstr, tablename):
         #TODO - add exception handling
         logger.error("Invalid type " + type)
         raise Exception("Invalid type " + type)
+# end function
+
+
+# function - extract_fieldnames_odbc
+#  extract and retirn as a list the field names from the given table
+def extract_fieldnames_sqlite(connectstr, tablename):
+    logger.info("extract_fieldnames_odbc:connectstr=" + connectstr +
+                ",tablename=" + tablename)
+    con = lite.connect(connectstr)
+    
+    cur = None
+    fieldnames = None
+    try:
+        cur = con.cursor()  
+        cur.execute("PRAGMA table_info(" + tablename + ")")
+        description = cur.fetchall()
+        
+        fieldnames = []
+        for row in description:
+            fieldnames.append(row[1])
+    except Exception as e:
+        logger.error(e)
+        raise e                
+    finally:
+        if(cur != None):
+            cur.close()
+        con.close()
+    
+    return fieldnames
 # end function
 
 

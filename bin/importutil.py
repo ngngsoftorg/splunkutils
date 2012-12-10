@@ -8,8 +8,8 @@ import logging, logging.handlers
 import splunk
 import splunk.clilib.cli_common 
 import splunk.Intersplunk
-
-#import splunk.bundle as bundle
+import splunk.bundle as bundle
+import re
 
  
     
@@ -37,27 +37,60 @@ def setup_logging():
 # function - usage
 #   display how to use this python script
 def usage():
-    return "\nUsage   : importutil <protocol> <url> [<datasource-stanza>]" + "\nExample : importutil http http://localhost/some/example.csv httpproxyconfig"
+    return "\nUsage   : importutil [config=<config>] [splunkformat] <protocol> <url>" + "\nExample : importutil http http://localhost/some/example.csv httpproxyconfig"
+# end function
+
+
+# finction - getconfig()
+#
+def getparams():
+    if(sys.argv.__len__() < 3 or sys.argv.__len__() > 5):
+        logger.warn("Invalid arguments")
+        splunk.Intersplunk.parseError("Invalid arguments - " + usage())
+    
+    config = None
+    splunkformat = None
+    protocol = None
+    url = None
+
+    if(sys.argv.__len__() == 4):
+        if(re.search("config=",sys.argv[1])):
+            config = sys.argv[1]["config=".__len__():]
+        elif(re.search("splunkformat",sys.argv[1])):
+            splunkformat = True
+        else:
+            logger.warn("Invalid arguments")
+            splunk.Intersplunk.parseError("Invalid arguments - " + usage())  
+        protocol = sys.argv[2]
+        url = sys.argv[3]
+    elif(sys.argv.__len__() == 5):
+        if(re.search("config=",sys.argv[1]) and re.search("splunkformat",sys.argv[2])):
+            config = sys.argv[1]["config=".__len__():]
+            splunkformat = True
+            protocol = sys.argv[3]
+            url = sys.argv[4]
+        else:
+            logger.warn("Invalid arguments")
+            splunk.Intersplunk.parseError("Invalid arguments - " + usage())  
+    else:   
+        protocol = sys.argv[1]
+        url = sys.argv[2]
+        
+    return (config, splunkformat, protocol, url) 
 # end function
 
 logger = setup_logging()
+    
+(config, splunkformat, protocol, url) = getparams()
 
-if(sys.argv.__len__() < 3):
-    logger.warn("Invalid arguments")
-    splunk.Intersplunk.parseError("Invalid arguments - " + usage())
-    
-protocol = sys.argv[1]
-url = sys.argv[2]
-datasource = None
-    
 
 try:
 
-    if(sys.argv.__len__() == 4):
-        datasource = splunk.clilib.cli_common.getMergedConf('dbs')[sys.argv[3]]
+    if(config):
+        config = splunk.clilib.cli_common.getMergedConf('dbs')[config]
     # invoking in this manner allows for polymorphism.  Anyone can implement a new protocol as long as the protocol.protocol.__init__(logger, usage) and protocol.protocol.readtable(url) methods exist
     module = __import__(protocol)
-    instance = getattr(module, protocol)(logger, usage(), datasource)
+    instance = getattr(module, protocol)(logger, usage(), config, splunkformat)
     instance.readtable(url)   
     
     #else:

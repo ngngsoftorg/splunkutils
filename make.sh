@@ -1,2 +1,2 @@
 #!/bin/bash
-cp -Rf bin/* /Applications/splunk/etc/apps/importtable/bin/
+cp -Rf bin/*.py /Applications/splunk/etc/apps/importtable/bin/

@@ -43,8 +43,8 @@
 
 11.) Create default dbs.conf
 
-12.) Check code into public repository
-- Update code with creative commons
+#12.) Check code into public repository
+#- Update code with creative commons
 
 13.) Upload to splunk app store.
 - Determine what is needed to do this.
