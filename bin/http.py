@@ -20,7 +20,10 @@ class http:
         self.usage = usage
         self.config = config
         self.logger = logger
-        self.splunkformat = splunkformat
+        if(splunkformat == None):
+            self.splunkformat = True
+        else:
+            self.splunkformat = splunkformat
     # end function
 
 
@@ -31,7 +34,7 @@ class http:
         
         #TODO http://stackoverflow.com/questions/11805773/tunneling-httplib-through-a-proxy
         #httplib = httplib.HTTPConnection(proxyHost, proxyPort)
-        (proxyhost, proxyport, splunkformat) = self.get_proxyconfig()
+        (proxyhost, proxyport) = self.get_proxyconfig()
         
         contentlen = None
     
@@ -48,43 +51,6 @@ class http:
         else:
             Connection = httplib.HTTPConnection
                     
-
-        #Call the URL, determine size of csv and content type.
-        #isZip = "None"
-        try:
-            
-            con = Connection(parsedurl.netloc)
-            con.request("HEAD", parsedurl.path)
-            response = con.getresponse()
-            contentlen = response.getheader("Content-Length")
-            self.logger.info(parsedurl.path + " Content-Length=" + contentlen)
-            if(long(contentlen) > 99999999):
-                raise Exception("CSV to large '" + response.getheader("Content-Length") + "'. Content-Length must be <= 999MB") 
-            #if(response.getheader("Content-Type") == "application/zip"):
-                #isZip = "True"
-            #elif(response.getheader("Content-Type") == "application/gzip"):
-                #isZip = "True"
-        except Exception as e:
-            self.logger.error(e)
-            raise e
-        finally:
-            if(con != None):
-                con.close()
-        
-        #If it is a zip file then unzip first
-        '''if(isZip):
-            try:
-                con = httplib.HTTPConnection(parsedurl.netloc)
-                con.request("GET", parsedurl.path)
-                response = con.getresponse()
-                csvrows = response.read().split("\n")
-            except Exception as e:
-                logger.error(e)
-                raise e
-            finally:
-                if(con != None):
-                    con.close()    
-        '''
         
         #Call the URL, get the csv.
         csvrows = None
@@ -93,6 +59,7 @@ class http:
             con = Connection(parsedurl.netloc)
             con.request("GET", parsedurl.path)
             response = con.getresponse()
+            contentlen = response.getheader("Content-Length")
             
             # Use csvrows for splunk.Intersplunk.outputResults(results)
             #csvrows = response.read().split("\n")
@@ -103,7 +70,7 @@ class http:
                 buffersize = long(contentlen)
             
             # If this is to be in splunkformat then add the _raw field.
-            if(splunkformat):
+            if(self.splunkformat):
                 sys.stdout.write("_raw\n\"")
             
             totalread = 0
@@ -113,10 +80,11 @@ class http:
                 buffer = response.read(buffersize)
                 
                 # if to be in splunkformat then...
-                # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
-                if(splunkformat):           
+                
+                if(self.splunkformat):           
                     buffer = re.sub(r"(\")", "\"\"", buffer)
-                    if(re.search(r"(\r\n)", buffer)):
+                    # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
+                    """if(re.search(r"(\r\n)", buffer)):
                         buffer = re.sub(r"(\r\n)", "\"\r\n\"", buffer)
                     elif(re.search(r"(\r)", buffer)):
                         buffer = re.sub(r"(\r)", "\"\r\"", buffer)
@@ -129,8 +97,11 @@ class http:
                     bufsize = buffer.__len__()
                     if(totalread == long(contentlen) and newlines):
                         buffer = buffer[0:bufsize-1]   
-                
+                    """
                 sys.stdout.write(buffer)
+            
+            if(self.splunkformat):
+                sys.stdout.write("\"")
               
         except Exception as e:
             self.logger.error(e)
@@ -161,7 +132,6 @@ class http:
         db = self.config
         proxyhost=None
         proxyport=None
-        splunkformat=self.splunkformat
         
 
         if(db != None):
@@ -173,7 +143,7 @@ class http:
                     proxyport = db[dbkey]
                     self.logger.trace("proxyport:" + proxyport)
         
-        return (proxyhost,proxyport,splunkformat)
+        return (proxyhost,proxyport)
     # end function
     
     

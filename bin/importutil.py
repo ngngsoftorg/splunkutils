@@ -2,7 +2,6 @@
 
 #This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-
 import sys, os
 import logging, logging.handlers
 import splunk
@@ -12,10 +11,9 @@ import splunk.bundle as bundle
 import re
 
  
+def __setup_logging():
+    """Sets up logging for importutil"""
     
-# start function setup_logging()
-#
-def setup_logging():
     logger = logging.getLogger('importutil')    
     SPLUNK_HOME = os.environ['SPLUNK_HOME']
     
@@ -30,20 +28,18 @@ def setup_logging():
     logger.addHandler(splunk_log_handler)
     splunk.setupSplunkLogger(logger, LOGGING_DEFAULT_CONFIG_FILE, LOGGING_LOCAL_CONFIG_FILE, LOGGING_STANZA_NAME)
     return logger
-# end function   
     
     
-    
-# function - usage
-#   display how to use this python script
 def usage():
+    """Returns usage information for importutil"""
+    
     return "\nUsage   : importutil [config=<config>] [splunkformat] <protocol> <url>" + "\nExample : importutil http http://localhost/some/example.csv httpproxyconfig"
-# end function
 
 
-# finction - getconfig()
-#
-def getparams():
+def __getparams():
+    """Determines if params are valid and returns:
+    (config, splunkformat, protocol, url)"""
+    
     if(sys.argv.__len__() < 3 or sys.argv.__len__() > 5):
         logger.warn("Invalid arguments")
         splunk.Intersplunk.parseError("Invalid arguments - " + usage())
@@ -77,17 +73,16 @@ def getparams():
         url = sys.argv[2]
         
     return (config, splunkformat, protocol, url) 
-# end function
 
-logger = setup_logging()
+
+
+logger = __setup_logging()
     
-(config, splunkformat, protocol, url) = getparams()
-
+(config, splunkformat, protocol, url) = __getparams()
 
 try:
-
     if(config):
-        config = splunk.clilib.cli_common.getMergedConf('dbs')[config]
+        config = splunk.clilib.cli_common.getMergedConf('importutil')[config]
     # invoking in this manner allows for polymorphism.  Anyone can implement a new protocol as long as the protocol.protocol.__init__(logger, usage) and protocol.protocol.readtable(url) methods exist
     module = __import__(protocol)
     instance = getattr(module, protocol)(logger, usage(), config, splunkformat)

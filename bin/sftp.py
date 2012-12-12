@@ -17,7 +17,10 @@ class sftp:
     def __init__(self, logger, usage, config, splunkformat):
         self.config = config
         self.logger = logger
-        self.splunkformat = splunkformat
+        if(splunkformat == None):
+            self.splunkformat = True
+        else:
+            self.splunkformat = splunkformat
     # end function
 
         
@@ -30,8 +33,7 @@ class sftp:
         sftpfile = None
         parsedurl = urlparse.urlparse(url)
         
-        (proxyhost,proxyport,splunkformat) = self.get_proxyconfig()
-        self.splunkformat = splunkformat
+        (proxyhost,proxyport) = self.get_proxyconfig()
         
         try:
             ssh = paramiko.SSHClient()
@@ -43,21 +45,28 @@ class sftp:
             
             # Add _raw for json logs
             if(self.splunkformat):
-                sys.stdout.write("_raw\n")
+                #sys.stdout.write("_raw\n")
+                sys.stdout.write("_raw\n\"")
+                
             while(1):
                 line = sftpfile.readline()
                 if(line == ""):
                     break
                 else:
-                    # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
+                    
                     if(self.splunkformat):
                         line = re.sub(r"(\")", "\"\"", line) 
-                        line = re.sub(r"(\n)", "\"\n", line) 
-                        line = re.sub(r"(\r)", "\"\r", line) 
-                        sys.stdout.write("\"" + line )
+                        # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
+                        #line = re.sub(r"(\n)", "\"\n", line) 
+                        #line = re.sub(r"(\r)", "\"\r", line) 
+                        #sys.stdout.write("\"" + line )
+                        sys.stdout.write(line)
                     #CSV does not require the quotes or _raw
                     else:
                         sys.stdout.write(line)
+                            
+            if(self.splunkformat):
+                sys.stdout.write("\"")
 
 
         except Exception as e:
@@ -79,7 +88,6 @@ class sftp:
         db = self.config
         proxyhost=None
         proxyport=None
-        splunkformat = self.splunkformat
         
         
         if(db != None):
@@ -91,6 +99,6 @@ class sftp:
                     proxyport = db[dbkey]
                     self.logger.trace("proxyport:" + proxyport)
         
-        return (proxyhost,proxyport,splunkformat)
+        return (proxyhost,proxyport)
     # end function
       

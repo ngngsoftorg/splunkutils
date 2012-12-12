@@ -2,7 +2,6 @@
 
 #This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-
 import sys, os
 import logging, logging.handlers
 import ftplib
@@ -10,29 +9,47 @@ import re
 import urlparse
 import urllib2
 
+
 class ftp:
     
-    # start function __init__()
-    #
     def __init__(self, logger, usage, config, splunkformat):
+        """
+        ftp constructor.
+        @param logger - must be a valid logger object.  Where ftp writes its logs.
+        @param usage - a method which describes usage of the system.
+        @param config - NOT YET IMPLEMENTED, BUT REQUIRED
+            A dictionary containing proxy config info.
+            proxyhost and proxyport, currently pro
+        @param splunkformat - if true ftp will write url in single splunk event format : _raw "event 1, event 2" to stdout.  if false, writes exact file to stdout
+            event 1, event 2.
+            Other formatting options will be possible in the future.
+        """
         self.config = config
         self.logger = logger
-        self.splunkformat = splunkformat
+        if(splunkformat == None):
+            self.splunkformat = True
+        else:
+            self.splunkformat = splunkformat
         self.filesize = 0
         self.totalread = 0
-    # end function
 
-        
-    # function readtable(url)
-    #
+
     def readtable(self, url):
+        """
+        Public method
+        Get's the data from the file at the given ftp URL.
+        Writes the data to stdout using the splunk _raw single event format:
+            _raw
+            "event 1
+            event 2
+            event 3"
+        """
         
         ftp = None
         buffersize = 0
         parsedurl = urlparse.urlparse(url)
         
-        (proxyhost,proxyport,splunkformat) = self.get_proxyconfig()
-        self.splunkformat = splunkformat
+        (proxyhost,proxyport) = self.__get_proxyconfig()
         
         try:
             ftp = ftplib.FTP(parsedurl.hostname)
@@ -54,19 +71,23 @@ class ftp:
         finally:
             if(ftp != None):
                 ftp.quit()
+
+
+    def __handleDownload(self, buffer):
+        """
+        Private method.
+        A callback funciton used by the ftp.retbinary() method.
+        Writes the buffer to stdout.
+        Adds a trainling quote if end of the file.
+        """
         
-    # end function
-
-
-    # start function __handleDownload()
-    #     
-    def __handleDownload(self, buffer):     
         self.totalread = self.totalread + buffer.__len__()   
         newlines = True
         
-        # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
         if(self.splunkformat):
             buffer = re.sub(r"(\")", "\"\"", buffer)
+            # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
+            """
             if(re.search(r"(\r\n)", buffer)):
                 buffer = re.sub(r"(\r\n)", "\"\r\n\"", buffer)
             elif(re.search(r"(\r)", buffer)):
@@ -75,24 +96,28 @@ class ftp:
                 buffer = re.sub(r"(\n)", "\"\n\"", buffer)
             else:
                 newlines = False
-            
             #remove the trailing quote.
             bufsize = buffer.__len__()
             if(self.totalread == self.filesize and newlines):
-                buffer = buffer[0:bufsize-1]        
+                buffer = buffer[0:bufsize-1] 
+            """
+            #add trainling quote
+            bufsize = buffer.__len__()
+            if(self.totalread == self.filesize):
+                buffer = buffer + "\"" 
         
         sys.stdout.write(buffer)
-    # end function
-    
-    
-    
-    # start function
-    #
-    def get_proxyconfig(self):
+
+
+    def __get_proxyconfig(self):
+        """
+        Private method.
+        Returns proxy config for the ftp call.
+        """
+        
         db = self.config
         proxyhost=None
         proxyport=None
-        splunkformat = self.splunkformat
         
         
         if(db != None):
@@ -104,7 +129,5 @@ class ftp:
                     proxyport = db[dbkey]
                     self.logger.trace("proxyport:" + proxyport)
         
-        return (proxyhost,proxyport,splunkformat)
-    # end function
-
+        return (proxyhost,proxyport)
     
