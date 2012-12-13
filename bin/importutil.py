@@ -33,7 +33,7 @@ def __setup_logging():
 def usage():
     """Returns usage information for importutil"""
     
-    return "\nUsage   : importutil [config=<config>] [splunkformat] <protocol> <url>" + "\nExample : importutil http http://localhost/some/example.csv httpproxyconfig"
+    return "\nUsage   : importutil [config=<config>] [format=<format>] <protocol> <url>" + "\nExample : importutil http http://research.stlouisfed.org/fred2/data/PAYEMS.txt"
 
 
 def __getparams():
@@ -52,7 +52,7 @@ def __getparams():
     if(sys.argv.__len__() == 4):
         if(re.search("config=",sys.argv[1])):
             config = sys.argv[1]["config=".__len__():]
-        elif(re.search("splunkformat",sys.argv[1])):
+        elif(re.search("format",sys.argv[1])):
             splunkformat = True
         else:
             logger.warn("Invalid arguments")
@@ -60,7 +60,7 @@ def __getparams():
         protocol = sys.argv[2]
         url = sys.argv[3]
     elif(sys.argv.__len__() == 5):
-        if(re.search("config=",sys.argv[1]) and re.search("splunkformat",sys.argv[2])):
+        if(re.search("config=",sys.argv[1]) and re.search("format",sys.argv[2])):
             config = sys.argv[1]["config=".__len__():]
             splunkformat = True
             protocol = sys.argv[3]

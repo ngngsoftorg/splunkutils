@@ -1,5 +1,10 @@
 #!/bin/bash
-cp -Rf bin/* /Applications/splunk/etc/apps/importtable/bin/
-cp -Rf local/* /Applications/splunk/etc/apps/importtable/local/
-cp -Rf default/* /Applications/splunk/etc/apps/importtable/default/
-cp -Rf metadata/* /Applications/splunk/etc/apps/importtable/metadata/
+
+if [ "$SPLUNK_HOME" == "" ]
+then
+    echo "SPLUNK_HOME must be set."
+else
+    cp -Rf bin/* $SPLUNK_HOME/etc/apps/importutil/bin/
+    cp -Rf local/* $SPLUNK_HOME/etc/apps/importutil/local/
+    cp -Rf metadata/* $SPLUNK_HOME/etc/apps/importutil/metadata/
+fi

@@ -1,2 +1,8 @@
 #!/bin/bash
-cp -Rf bin/*.py /Applications/splunk/etc/apps/importtable/bin/
+
+if [ "$SPLUNK_HOME" == "" ]
+then
+    echo "SPLUNK_HOME must be set."
+else
+    cp -Rf bin/*.py $SPLUNK_HOME/etc/apps/importutil/bin/
+fi

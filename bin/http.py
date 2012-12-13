@@ -9,6 +9,7 @@ import json
 import logging, logging.handlers
 import httplib
 import urlparse
+import urllib2
 import re
 
 
@@ -27,15 +28,82 @@ class http:
     # end function
 
 
-        
     # function readtable(url)
     #
     def readtable(self, url):
+    
+        #validate the url is an http url.
+        parsedurl = urlparse.urlparse(url)
+        if((parsedurl.scheme != "https" and parsedurl.scheme != "http")   or parsedurl.netloc.__len__() < 1 or parsedurl.path.__len__() < 1):
+            raise Exception("Invalid url:" + url)
         
-        #TODO http://stackoverflow.com/questions/11805773/tunneling-httplib-through-a-proxy
-        #httplib = httplib.HTTPConnection(proxyHost, proxyPort)
+        #Determine if this is http or https
+        protocol = "http"
+        if(parsedurl.scheme == "https"):
+            protocol = "https"
+        
+        message = None
+        opener = None
+        contentlen = None
+        try:
+            #If a proxy is given try using it.
+            (proxyhost, proxyport, proxyuser, proxypass) = self.get_proxyconfig()
+            if(proxyhost):
+                proxy_info = { "user":proxyuser,"pass":proxypass,"host":proxyhost,"port":long(proxyport)}
+                proxy_support = urllib2.ProxyHandler({parsedurl.scheme:parsedurl.scheme+"://%(user)s:%(pass)s@%(host)s:%(port)d" % proxy_info})
+                opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+            #otherwise just use standard connection.
+            else:
+                opener = urllib2.build_opener(urllib2.HTTPHandler)
+            
+            #open the url and get a file 
+            urllib2.install_opener(opener)
+            message = urllib2.urlopen(url)
+            
+            #Determine the content length.
+            contentlen = message.headers['Content-Length']
+            
+            #Make the buffer size 1K
+            buffersize = 1000
+            if(long(contentlen) <= buffersize):
+                buffersize = long(contentlen)
+            
+            # If this is to be in splunkformat then add the _raw field.
+            if(self.splunkformat):
+                sys.stdout.write("_raw\n\"")
+            
+            #Cycle through all the data... writing to stdout 
+            totalread = 0
+            newlines = True
+            while (totalread < long(contentlen)):
+                totalread = totalread + buffersize
+                buffer = message.read(buffersize)
+                
+                if(self.splunkformat): 
+                    # replace all " with "" this is the formatting needed by splunk.          
+                    buffer = re.sub(r"(\")", "\"\"", buffer)
+                sys.stdout.write(buffer)
+            
+            if(self.splunkformat):
+                sys.stdout.write("\"")
+        
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+        finally:
+            if(message != None):
+                message.close()
+            if(opener != None):
+                opener.close()
+    # end function
+
+
+
+
+        
+    def __httplib_readtable(self, url):
+        
         (proxyhost, proxyport) = self.get_proxyconfig()
-        
         contentlen = None
     
     
@@ -132,18 +200,26 @@ class http:
         db = self.config
         proxyhost=None
         proxyport=None
+        proxyuser=None
+        proxypass=None
         
 
         if(db != None):
             for dbkey in db.keys():
                 if(str(dbkey) == "proxyhost"):
                     proxyhost = db[dbkey]
-                    self.logger.trace("proxyhost:" + proxyhost)
+                    self.logger.debug("proxyhost:" + proxyhost)
                 if(str(dbkey) == "proxyport"):
                     proxyport = db[dbkey]
-                    self.logger.trace("proxyport:" + proxyport)
+                    self.logger.debug("proxyport:" + proxyport)
+                if(str(dbkey) == "proxyuser"):
+                    proxyuser = db[dbkey]
+                    self.logger.debug("proxyuser:" + proxyuser)
+                if(str(dbkey) == "proxypass"):
+                    proxypass = db[dbkey]
+                    self.logger.debug("proxypass:" + proxypass)
         
-        return (proxyhost,proxyport)
+        return (proxyhost,proxyport,proxyuser,proxypass)
     # end function
     
     
