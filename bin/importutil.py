@@ -81,16 +81,17 @@ logger = __setup_logging()
 (config, splunkformat, protocol, url) = __getparams()
 
 try:
-    if(config):
-        config = splunk.clilib.cli_common.getMergedConf('importutil')[config]
+    importutilconfdict = splunk.clilib.cli_common.getMergedConf('importutil')
+    configstanza = None
+    if(config and (config in importutilconfdict)):
+        configstanza = importutilconfdict[config]
+    elif(config):
+        raise Exception("config=" + config + " not found in importutil.conf.")
+            
     # invoking in this manner allows for polymorphism.  Anyone can implement a new protocol as long as the protocol.protocol.__init__(logger, usage) and protocol.protocol.readtable(url) methods exist
     module = __import__(protocol)
-    instance = getattr(module, protocol)(logger, usage(), config, splunkformat)
+    instance = getattr(module, protocol)(logger, usage(), configstanza, splunkformat)
     instance.readtable(url)   
-    
-    #else:
-    #logger.warn("Invalid protocol " + protocol)
-    #   splunk.Intersplunk.parseError("Invalid protocol " + protocol + " - " + usage())
 except Exception as e:
     logger.error(e)
     splunk.Intersplunk.parseError(str(e) + usage())

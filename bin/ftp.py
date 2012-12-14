@@ -49,7 +49,7 @@ class ftp:
         buffersize = 0
         parsedurl = urlparse.urlparse(url)
         
-        (proxyhost,proxyport) = self.__get_proxyconfig()
+        (proxyhost,proxyport,proxyuser,proxypass) = self.__get_proxyconfig()
         
         try:
             ftp = ftplib.FTP(parsedurl.hostname)
@@ -114,20 +114,27 @@ class ftp:
         Private method.
         Returns proxy config for the ftp call.
         """
-        
         db = self.config
         proxyhost=None
         proxyport=None
+        proxyuser=None
+        proxypass=None
         
         
         if(db != None):
             for dbkey in db.keys():
                 if(str(dbkey) == "proxyhost"):
                     proxyhost = db[dbkey]
-                    self.logger.trace("proxyhost:" + proxyhost)
+                    self.logger.debug("proxyhost:" + proxyhost)
                 if(str(dbkey) == "proxyport"):
                     proxyport = db[dbkey]
-                    self.logger.trace("proxyport:" + proxyport)
+                    self.logger.debug("proxyport:" + proxyport)
+                if(str(dbkey) == "proxyuser"):
+                    proxyuser = db[dbkey]
+                    self.logger.debug("proxyuser:" + proxyuser)
+                if(str(dbkey) == "proxypass"):
+                    proxypass = db[dbkey]
+                    self.logger.debug("proxypass:" + proxypass)
         
-        return (proxyhost,proxyport)
+        return (proxyhost,proxyport,proxyuser,proxypass)
     
