@@ -12,28 +12,40 @@ import re
 
 class sftp:
     
-    # start function __init__()
-    #
     def __init__(self, logger, usage, config, splunkformat):
+        """
+        sftp constructor.
+        @param logger - must be a valid logger object.  Where sftp writes its logs.
+        @param usage - a method which describes usage of the system.
+        @param config - NOT YET IMPLEMENTED, BUT REQUIRED
+        A dictionary containing proxy config info.  proxyhost and proxyport, currently pro
+        @param splunkformat - NOT YET IMPLEMENTED, BUT REQUIRED.
+        Will write url in single splunk event format  : _raw "event 1, event 2" to stdout.
+        """
         self.config = config
         self.logger = logger
         if(splunkformat == None):
             self.splunkformat = True
         else:
             self.splunkformat = splunkformat
-    # end function
 
-        
-    # function readtable(url)
-    #
+
     def readtable(self, url):
-        
+        """
+        Public method
+        Get's the data from the file at the given sftp URL.
+        Writes the data to stdout using the splunk _raw single event format:
+        _raw
+        "event 1
+        event 2
+        event 3"
+        """
         ssh = None
         sftp = None
         sftpfile = None
         parsedurl = urlparse.urlparse(url)
         
-        (proxyhost,proxyport) = self.get_proxyconfig()
+        (proxyhost,proxyport,proxyuser,proxypass) = self.__get_proxyconfig()
         
         try:
             ssh = paramiko.SSHClient()
@@ -79,26 +91,34 @@ class sftp:
                 sftp.close()
             if(ssh != None):
                 ssh.close()
-    # end function
 
-                    
-    # start function
-    #
-    def get_proxyconfig(self):
+
+    def __get_proxyconfig(self):
+        """
+        Private method.
+        Returns proxy config for the ftp call.
+        """
         db = self.config
         proxyhost=None
         proxyport=None
+        proxyuser=None
+        proxypass=None
         
         
         if(db != None):
             for dbkey in db.keys():
                 if(str(dbkey) == "proxyhost"):
                     proxyhost = db[dbkey]
-                    self.logger.trace("proxyhost:" + proxyhost)
+                    self.logger.debug("proxyhost:" + proxyhost)
                 if(str(dbkey) == "proxyport"):
                     proxyport = db[dbkey]
-                    self.logger.trace("proxyport:" + proxyport)
+                    self.logger.debug("proxyport:" + proxyport)
+                if(str(dbkey) == "proxyuser"):
+                    proxyuser = db[dbkey]
+                    self.logger.debug("proxyuser:" + proxyuser)
+                if(str(dbkey) == "proxypass"):
+                    proxypass = db[dbkey]
+                    self.logger.debug("proxypass:" + proxypass)
         
-        return (proxyhost,proxyport)
-    # end function
+        return (proxyhost,proxyport,proxyuser,proxypass)
       

@@ -18,11 +18,9 @@ class ftp:
         @param logger - must be a valid logger object.  Where ftp writes its logs.
         @param usage - a method which describes usage of the system.
         @param config - NOT YET IMPLEMENTED, BUT REQUIRED
-            A dictionary containing proxy config info.
-            proxyhost and proxyport, currently pro
-        @param splunkformat - if true ftp will write url in single splunk event format : _raw "event 1, event 2" to stdout.  if false, writes exact file to stdout
-            event 1, event 2.
-            Other formatting options will be possible in the future.
+        A dictionary containing proxy config info.  proxyhost and proxyport, currently pro
+        @param splunkformat - NOT YET IMPLEMENTED, BUT REQUIRED.
+        Will write url in single splunk event format  : _raw "event 1, event 2" to stdout.
         """
         self.config = config
         self.logger = logger
