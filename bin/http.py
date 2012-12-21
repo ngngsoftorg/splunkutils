@@ -82,7 +82,25 @@ class http:
                 if(self.splunkformat): 
                     # replace all " with "" this is the formatting needed by splunk.          
                     buffer = re.sub(r"(\")", "\"\"", buffer)
+                elif(self.splunkformat == "newlinesep"):
+                    buffer = re.sub(r"(\")", "\"\"", buffer)
+                    if(re.search(r"(\r\n)", buffer)):
+                        buffer = re.sub(r"(\r\n)", "\"\r\n\"", buffer)
+                    elif(re.search(r"(\r)", buffer)):
+                        buffer = re.sub(r"(\r)", "\"\r\"", buffer)
+                    elif(re.search(r"(\n)", buffer)):
+                        buffer = re.sub(r"(\n)", "\"\n\"", buffer)
+                    else:
+                        newlines = False
+                        
+                    #remove the trailing quote.
+                    bufsize = buffer.__len__()
+                    if(totalread >= long(contentlen) and newlines):
+                        buffer = buffer[0:bufsize-1]
+                
                 sys.stdout.write(buffer)
+                
+            
             
             if(self.splunkformat):
                 sys.stdout.write("\"")
