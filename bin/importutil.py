@@ -95,7 +95,7 @@ try:
     # as long as the protocol.protocol.__init__(logger, usage) and
     # protocol.protocol.readtable(url) methods exist
     module = __import__(protocol)
-    instance = getattr(module, protocol)(logger, usage(), configstanza, splunkformat)
+    instance = getattr(module, protocol)(logger, usage(), configstanza, splunkformat, None)
     instance.readtable(url)   
 except Exception as e:
     logger.error(e)

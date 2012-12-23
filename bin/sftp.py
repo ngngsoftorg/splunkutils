@@ -12,7 +12,7 @@ import re
 
 class sftp:
     
-    def __init__(self, logger, usage, config, splunkformat):
+    def __init__(self, logger, usage, config, splunkformat, output):
         """
         sftp constructor.
         @param logger - must be a valid logger object.  Where sftp writes its logs.
@@ -28,6 +28,11 @@ class sftp:
             self.splunkformat = True
         else:
             self.splunkformat = splunkformat
+        if(output == None):
+            self.output = sys.stdout
+        else:
+            self.output = output
+
 
 
     def readtable(self, url):
@@ -57,8 +62,8 @@ class sftp:
             
             # Add _raw for json logs
             if(self.splunkformat):
-                #sys.stdout.write("_raw\n")
-                sys.stdout.write("_raw\n\"")
+                #self.output.write("_raw\n")
+                self.output.write("_raw\n\"")
                 
             while(1):
                 line = sftpfile.readline()
@@ -71,14 +76,14 @@ class sftp:
                         # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
                         #line = re.sub(r"(\n)", "\"\n", line) 
                         #line = re.sub(r"(\r)", "\"\r", line) 
-                        #sys.stdout.write("\"" + line )
-                        sys.stdout.write(line)
+                        #self.output.write("\"" + line )
+                        self.output.write(line)
                     #CSV does not require the quotes or _raw
                     else:
-                        sys.stdout.write(line)
+                        self.output.write(line)
                             
             if(self.splunkformat):
-                sys.stdout.write("\"")
+                self.output.write("\"")
 
 
         except Exception as e:

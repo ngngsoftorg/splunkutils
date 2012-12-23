@@ -12,7 +12,7 @@ import urllib2
 
 class ftp:
     
-    def __init__(self, logger, usage, config, splunkformat):
+    def __init__(self, logger, usage, config, splunkformat, output):
         """
         ftp constructor.
         @param logger - must be a valid logger object.  Where ftp writes its logs.
@@ -30,6 +30,11 @@ class ftp:
             self.splunkformat = splunkformat
         self.filesize = 0
         self.totalread = 0
+        if(output == None):
+            self.output = sys.stdout
+        else:
+            self.output = output
+
 
 
     def readtable(self, url):
@@ -59,7 +64,7 @@ class ftp:
             self.filesize = ftp.size(parsedurl.path) 
             # Add _raw for json logs
             if(self.splunkformat):
-                sys.stdout.write("_raw\n\"")
+                self.output.write("_raw\n\"")
             #Get the data.
             ftp.retrbinary('RETR ' + parsedurl.path, self.__handleDownload)
             
@@ -104,7 +109,7 @@ class ftp:
             if(self.totalread == self.filesize):
                 buffer = buffer + "\"" 
         
-        sys.stdout.write(buffer)
+        self.output.write(buffer)
 
 
     def __get_proxyconfig(self):
