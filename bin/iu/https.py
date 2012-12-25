@@ -4,8 +4,8 @@
 
 import sys, os
 import logging, logging.handlers
-import http
+import iu.http
 
 
-class https(http.http):
+class https(iu.http.http):
     """ Extends http.  http handles https as well. This class is just for convenience. """

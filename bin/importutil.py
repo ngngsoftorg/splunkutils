@@ -94,7 +94,10 @@ try:
     # Invoking in this manner allows for polymorphism.  Anyone can implement a new protocol
     # as long as the protocol.protocol.__init__(logger, usage) and
     # protocol.protocol.readtable(url) methods exist
-    module = __import__(protocol)
+    #TODO this isn't going to work unless we can call the package name as well... looks like that does not work in this way... maybe a difference method?
+    protocol_list = []
+    protocol_list.append(protocol)
+    module = __import__("iu." + protocol,globals(),locals(),protocol_list,-1)
     instance = getattr(module, protocol)(logger, usage(), configstanza, splunkformat, None)
     instance.readtable(url)   
 except Exception as e:
