@@ -76,7 +76,7 @@ def testhttp():
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
     except Exception as e:
         logger.warn(e)
-        assert "Errno 8" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
+        assert "Errno 8" in e.__str__() or "Errno -2" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
         print "test: http GET PAYEMS from a non existent server... returned Errno 8 success"
 
 
@@ -109,7 +109,7 @@ def testlocalhttp():
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
     except Exception as e:
         logger.warn(e)
-        assert "Errno 8" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
+        assert "Errno 8" in e.__str__() or "Errno -2" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
         print "test: http GET PAYEMS from a non existent server... returned Errno 8 success"
     
     # Resource not found
@@ -142,7 +142,7 @@ def testhttps():
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
     except Exception as e:
         logger.warn(e)
-        assert "Errno 8" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
+        assert "Errno 8" in e.__str__() or "Errno -2" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
         print "test: https GET PAYEMS from a non existent server... returned Errno 8 success"
 
 
@@ -177,7 +177,7 @@ def testftp():
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
     except Exception as e:
         logger.warn(e)
-        assert "Errno 8" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
+        assert "Errno 8" in e.__str__() or "Errno -2" in e.__str__(), "Error: Invalid response... should have resulted in Exception due to an unknown server."
         print "test: ftp GET WeeklyEarningsHist from a non existent server... returned Errno 8 success"
 
 
