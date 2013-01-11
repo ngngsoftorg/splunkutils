@@ -1,7 +1,7 @@
 importutils
 ===========
 
-Still in Alpha mode.  Use at your own risk.
+Still in Beta mode.  Use at your own risk.
 
 For install information see:
 https://github.com/ngngsoftorg/splunkutils/wiki/Install
