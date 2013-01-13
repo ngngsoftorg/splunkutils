@@ -25,7 +25,7 @@ class sftp:
         self.config = config
         self.logger = logger
         if(splunkformat == None):
-            self.splunkformat = True
+            self.splunkformat = "raw"
         else:
             self.splunkformat = splunkformat
         if(output == None):
@@ -61,7 +61,7 @@ class sftp:
             sftpfile = sftp.open(parsedurl.path)
             
             # Add _raw for json logs
-            if(self.splunkformat):
+            if(self.splunkformat == "raw"):
                 #self.output.write("_raw\n")
                 self.output.write("_raw\n\"")
                 
@@ -71,7 +71,7 @@ class sftp:
                     break
                 else:
                     
-                    if(self.splunkformat):
+                    if(self.splunkformat == "raw"):
                         line = re.sub(r"(\")", "\"\"", line) 
                         # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
                         #line = re.sub(r"(\n)", "\"\n", line) 
@@ -82,7 +82,7 @@ class sftp:
                     else:
                         self.output.write(line)
                             
-            if(self.splunkformat):
+            if(self.splunkformat == "raw"):
                 self.output.write("\"")
 
 

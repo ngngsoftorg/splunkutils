@@ -11,6 +11,7 @@ import httplib
 import urlparse
 import urllib2
 import re
+import splunk.Intersplunk
 
 
 class http:
@@ -22,7 +23,7 @@ class http:
         self.config = config
         self.logger = logger
         if(splunkformat == None):
-            self.splunkformat = True
+            self.splunkformat = "raw"
         else:
             self.splunkformat = splunkformat
         if(output == None):
@@ -67,25 +68,38 @@ class http:
             #Determine the content length.
             contentlen = message.headers['Content-Length']
             
-            #Make the buffer size 1K
-            buffersize = 1000
-            if(long(contentlen) <= buffersize):
-                buffersize = long(contentlen)
+            #Make the buffer size of content by default
+            buffersize = long(contentlen)
             
             # If this is to be in splunkformat then add the _raw field.
-            if(self.splunkformat):
+            if(self.splunkformat == "raw"):
                 self.output.write("_raw\n\"")
-            
-            #Cycle through all the data... writing to stdout 
+                #Make the buffer size 1K for True
+                buffersize = 1000
+                if(long(contentlen) <= buffersize):
+                    buffersize = long(contentlen)
+
+            #Cycle through all the data... writing to stdout
             totalread = 0
             newlines = True
             while (totalread < long(contentlen)):
                 totalread = totalread + buffersize
                 buffer = message.read(buffersize)
                 
-                if(self.splunkformat): 
-                    # replace all " with "" this is the formatting needed by splunk.          
-                    buffer = re.sub(r"(\")", "\"\"", buffer)
+                if(self.splunkformat == "splunk"):
+                    rows = buffer.read().split("r\n\"")
+                    #csvrows = buffer.read().split("\n")
+                    #Create a splunk readable "_raw dictionary"
+                    results = producerawdict(rows)
+                    
+                    #output results to splunk.
+                    if(results != None):
+                        splunk.Intersplunk.outputResults(results)
+                    '''
+                    else:
+                        #Create a wrapper readable json object
+                        outputjson(csvrows)
+                    '''
                 elif(self.splunkformat == "newlinesep"):
                     buffer = re.sub(r"(\")", "\"\"", buffer)
                     if(re.search(r"(\r\n)", buffer)):
@@ -96,7 +110,10 @@ class http:
                         buffer = re.sub(r"(\n)", "\"\n\"", buffer)
                     else:
                         newlines = False
-                        
+                elif(self.splunkformat == "raw"):
+                    # replace all " with "" this is the formatting needed by splunk.
+                    buffer = re.sub(r"(\")", "\"\"", buffer)
+    
                     #remove the trailing quote.
                     bufsize = buffer.__len__()
                     if(totalread >= long(contentlen) and newlines):
@@ -106,7 +123,7 @@ class http:
                 
             
             
-            if(self.splunkformat):
+            if(self.splunkformat == "raw"):
                 self.output.write("\"")
         
         except Exception as e:
@@ -146,4 +163,88 @@ class http:
         
         return (proxyhost,proxyport,proxyuser,proxypass)
     # end function
+
+
+
+# function producerawdict()
+# Creates a splunk readable dictionary, where each row has a "_raw" key.
+def producerawdict(csvrows):
+    header = "True"
+    headervalues = None
+    numoffields = 0
+    results = []
+    reader = csv.reader(csvrows)
     
+    #if first line is header then pull it out.
+    if(header):
+        for row in reader:
+            #pull out the header values
+            headervalues = row
+            #determine number of fields
+            numoffields = row.__len__()
+            break
+    
+    #Add rows to the result object.
+    for row in reader:
+        
+        #Stop if you hit an empty line
+        if(row.__len__() == 0):
+            break
+        
+        newrow = ""
+        i = 0
+        for field in row:
+            newrow = newrow + headervalues[i] + "=" + field
+            if(i < numoffields-1):
+                newrow = newrow + ","
+            i = i + 1
+        
+        results.append({ '_raw':newrow})
+    return results
+# end function
+
+
+# function outputjson()
+# Creates a splunk readable dictionary, where each row has a "_raw" key.
+def outputjson(csvrows):
+    header = "True"
+    headervalues = None
+    numoffields = 0
+    results = []
+    reader = csv.reader(csvrows)
+    
+    #if first line is header then pull it out.
+    if(header):
+        for row in reader:
+            #pull out the header values
+            headervalues = row
+            #determine number of fields
+            numoffields = row.__len__()
+            break
+    
+    numofrows = csvrows.__len__()
+    currentrow = 0
+    print "["
+    #Add rows to the result object.
+    for row in reader:
+        
+        #Stop if you hit an empty line
+        if(row.__len__() == 0):
+            break
+        
+        buffer = ""
+        i = 0
+        for field in row:
+            buffer = buffer + headervalues[i] + "=" + field
+            if(i < numoffields-1):
+                buffer = buffer + ","
+            i = i + 1
+        
+        buffer =  "{\"_raw\":\"" + buffer + "\"}"
+        if(currentrow < numofrows - 1):
+            buffer = buffer + ","
+        
+        print buffer
+        currentrow = currentrow + 1
+    print "]"
+# end function

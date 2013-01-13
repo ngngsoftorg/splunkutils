@@ -60,7 +60,7 @@ class MyHTTPServer(BaseHTTPServer.HTTPServer):
 def testhttp():
     # Happy path http
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     getproto.readtable("http://research.stlouisfed.org/fred2/data/PAYEMS.csv")
     str_output = output.getvalue()
     assert str_output.startswith("_raw"), "Error: Invalid output... \"_raw\" not found."
@@ -70,7 +70,7 @@ def testhttp():
 
     # Server not found
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("http://doesnotexist/fred2/data/PAYEMS.csv")
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
@@ -82,7 +82,7 @@ def testhttp():
 
     # Resource not found
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("http://research.stlouisfed.org/fred2/data/doesnotexist.csv")
         assert 1 == 1, "Error: Invalid response... should have resulted in HTTP Error 404."
@@ -93,7 +93,7 @@ def testhttp():
 def testlocalhttp():
     # Happy path http
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     getproto.readtable("http://localhost:" + str(port) + "/examples/PAYEMS.json")
     str_output = output.getvalue()
     assert str_output.startswith("_raw"), "Error: Invalid output... \"_raw\" not found."
@@ -103,7 +103,7 @@ def testlocalhttp():
     
     # Server not found
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("http://doesnotexist/examples/PAYEMS.json")
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
@@ -114,9 +114,9 @@ def testlocalhttp():
     
     # Resource not found
     output = StringIO.StringIO()
-    getproto = iu.http.http(logger, "usage", None, "True", output)
+    getproto = iu.http.http(logger, "usage", None, "raw", output)
     try:
-        getproto.readtable("http://localhost:" + str(port) + "/examokes/doesnotexist.json")
+        getproto.readtable("http://localhost:" + str(port) + "/examples/doesnotexist.json")
         assert 1 == 1, "Error: Invalid response... should have resulted in HTTP Error 404."
     except Exception as e:
         assert "404" in e.__str__(), "Error: Invalid response... should have resulted in HTTP Error 404."
@@ -125,7 +125,7 @@ def testlocalhttp():
 def testhttps():
     # Happy path https
     output = StringIO.StringIO()
-    getproto = iu.https.https(logger, "usage", None, "True", output)
+    getproto = iu.https.https(logger, "usage", None, "raw", output)
     getproto.readtable("https://research.stlouisfed.org/fred2/data/PAYEMS.csv")
     str_output = output.getvalue()
     assert str_output.startswith("_raw"), "Error: Invalid output... \"_raw\" not found."
@@ -136,7 +136,7 @@ def testhttps():
 
     # Server not found
     output = StringIO.StringIO()
-    getproto = iu.https.https(logger, "usage", None, "True", output)
+    getproto = iu.https.https(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("https://doesnotexist/fred2/data/PAYEMS.csv")
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
@@ -148,7 +148,7 @@ def testhttps():
 
     # Resource not found
     output = StringIO.StringIO()
-    getproto = iu.https.https(logger, "usage", None, "True", output)
+    getproto = iu.https.https(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("https://research.stlouisfed.org/fred2/data/doesnotexist.csv")
         assert 1 == 1, "Error: Invalid response... should have resulted in HTTPS Error 404."
@@ -159,7 +159,7 @@ def testhttps():
 def testftp():
     # Happy path ftp
     output = StringIO.StringIO()
-    getproto = iu.ftp.ftp(logger, "usage", None, "True", output)
+    getproto = iu.ftp.ftp(logger, "usage", None, "raw", output)
     getproto.readtable("ftp://ftp.bls.gov/pub/time.series/ce/ce.data.102.WeeklyEarningsHist")
     str_output = output.getvalue()
     assert str_output.startswith("_raw"), "Error: Invalid output... \"_raw\" not found."
@@ -171,7 +171,7 @@ def testftp():
 
     # Server not found
     output = StringIO.StringIO()
-    getproto = iu.ftp.ftp(logger, "usage", None, "True", output)
+    getproto = iu.ftp.ftp(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("ftp://doesnotexist/pub/time.series/ce/ce.data.102.WeeklyEarningsHist")
         assert 1 == 1, "Error: Invalid response... should have resulted in Exception due to an unknown server."
@@ -183,7 +183,7 @@ def testftp():
 
     # Resource not found
     output = StringIO.StringIO()
-    getproto = iu.ftp.ftp(logger, "usage", None, "True", output)
+    getproto = iu.ftp.ftp(logger, "usage", None, "raw", output)
     try:
         getproto.readtable("ftp://ftp.bls.gov/pub/time.series/ce/ce.data.102.doesnotexist")
         assert 1 == 1, "Error: Invalid response... should have resulted in ftp Error 550"

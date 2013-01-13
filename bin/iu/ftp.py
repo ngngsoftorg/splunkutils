@@ -25,7 +25,7 @@ class ftp:
         self.config = config
         self.logger = logger
         if(splunkformat == None):
-            self.splunkformat = True
+            self.splunkformat = "raw"
         else:
             self.splunkformat = splunkformat
         self.filesize = 0
@@ -63,7 +63,7 @@ class ftp:
             #Determine file size.
             self.filesize = ftp.size(parsedurl.path) 
             # Add _raw for json logs
-            if(self.splunkformat):
+            if(self.splunkformat == "raw"):
                 self.output.write("_raw\n\"")
             #Get the data.
             ftp.retrbinary('RETR ' + parsedurl.path, self.__handleDownload)
@@ -87,7 +87,7 @@ class ftp:
         self.totalread = self.totalread + buffer.__len__()   
         newlines = True
         
-        if(self.splunkformat):
+        if(self.splunkformat == "raw"):
             buffer = re.sub(r"(\")", "\"\"", buffer)
             # replace all \n with "\n"...replace all " with "" this is the formatting needed by splunk for json.
             """
